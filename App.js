@@ -8,6 +8,7 @@ import LoginScreen from "./Screens/Login";
 import Signup from "./Screens/Signup";
 import HomeScreen from "./Screens/Home";
 import GalleryScreen from "./Screens/GalleryScreen";
+import WeatherScreen from "./Screens/Weather";   
 
 // ------------------- MAIN TABS ---------------------
 const MainTabs = createMaterialTopTabNavigator({
@@ -28,21 +29,26 @@ const RootStack = createNativeStackNavigator({
   screens: {
     LoginScreen: {
       screen: LoginScreen,
-      options: {
-        title: "Explore Pakistan",
-      },
+      options: { title: "Explore Pakistan" },
     },
     Signup: {
       screen: Signup,
-      options: {
-        title: "Explore Pakistan",
-      },
+      options: { title: "Explore Pakistan" },
     },
     MainTabs: {
       screen: MainTabs,
       options: {
-        title: "Explore Pakistan",
+        headerShown: false,  // Tabs mein already header hai, duplicate na dikhe
       },
+    },
+    Weather: {                     
+      screen: WeatherScreen,
+      options: ({ route }) => ({
+        title: route.params?.city || "Weather",   
+        headerStyle: { backgroundColor: "#187c3a" },
+        headerTintColor: "white",
+        headerTitleStyle: { fontWeight: "bold", fontSize: 22 },
+      }),
     },
   },
   screenOptions: {

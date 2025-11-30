@@ -22,7 +22,7 @@ const { width } = Dimensions.get("window");
 const imageSize = width / 2 - 20;
 
 const UNSPLASH_URL = "https://api.unsplash.com/search/photos";
-const ACCESS_KEY = "jc_3gNhV36lhccTFQkAhw65EGZg0Zn5PlPhmtRNgabI"; // replace with your key
+const ACCESS_KEY = "jc_3gNhV36lhccTFQkAhw65EGZg0Zn5PlPhmtRNgabI"; 
 
 export default function GalleryScreen() {
   const [images, setImages] = useState([]);
