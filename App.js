@@ -1,27 +1,62 @@
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from './Screens/Home';
-import Signup from './Screens/Sign-up';
-import LoginScreen from './Screens/Login';
+import * as React from "react";
+import { createStaticNavigation } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 
-const Stack = createNativeStackNavigator();
+// Screens
+import LoginScreen from "./Screens/Login";
+import Signup from "./Screens/Signup";
+import HomeScreen from "./Screens/Home";
+import GalleryScreen from "./Screens/GalleryScreen";
 
-const headerOptions = {
-  title: 'Explore Pakistan',
-  headerStyle: { backgroundColor: '#187c3a' },
-  headerTintColor: 'white',
-  headerTitleStyle: { fontWeight: 'bold', fontSize: 30 },
-  headerTitleAlign: 'center',
-};
+// ------------------- MAIN TABS ---------------------
+const MainTabs = createMaterialTopTabNavigator({
+  screens: {
+    Home: HomeScreen,
+    Gallery: GalleryScreen,
+  },
+  screenOptions: {
+    tabBarActiveTintColor: "#187c3a",
+    tabBarIndicatorStyle: { backgroundColor: "#187c3a", height: 3 },
+    tabBarLabelStyle: { fontSize: 14, fontWeight: "bold" },
+    tabBarStyle: { backgroundColor: "white" },
+  },
+});
 
+// ------------------- ROOT STACK ---------------------
+const RootStack = createNativeStackNavigator({
+  screens: {
+    LoginScreen: {
+      screen: LoginScreen,
+      options: {
+        title: "Explore Pakistan",
+      },
+    },
+    Signup: {
+      screen: Signup,
+      options: {
+        title: "Explore Pakistan",
+      },
+    },
+    MainTabs: {
+      screen: MainTabs,
+      options: {
+        title: "Explore Pakistan",
+      },
+    },
+  },
+  screenOptions: {
+    headerStyle: { backgroundColor: "#187c3a" },
+    headerTintColor: "white",
+    headerTitleStyle: { fontWeight: "bold", fontSize: 25 },
+    headerTitleAlign: "center",
+  },
+  initialRouteName: "LoginScreen",
+});
+
+const Navigation = createStaticNavigation(RootStack);
+
+// ------------------- APP ROOT ----------------------
 export default function App() {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="LoginScreen" screenOptions={headerOptions}>
-        <Stack.Screen name="LoginScreen" component={LoginScreen} />
-        <Stack.Screen name="Signup" component={Signup} />
-        <Stack.Screen name="Home" component={HomeScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
+  return <Navigation />;
 }

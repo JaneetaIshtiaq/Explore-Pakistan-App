@@ -1,26 +1,55 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, ImageBackground, Modal } from 'react-native';
+import { 
+  View, Text, TextInput, Pressable, StyleSheet, ImageBackground, Modal 
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen() {
+  const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const [modalTitle, setModalTitle] = useState('');
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       setModalTitle('Error');
       setModalMessage('Please enter both email and password');
-    } else if (email === 'test@gmail.com' && password === '1234') {
-      setModalTitle('Success');
-      setModalMessage('Login Successful! Welcome back!');
-      navigation.navigate('Home');
-    } else {
-      setModalTitle('Error');
-      setModalMessage('Wrong email or password');
+      setModalVisible(true);
+      return;
     }
-    setModalVisible(true);
+
+    try {
+      const userData = await AsyncStorage.getItem(email);
+      if (!userData) {
+        setModalTitle('Error');
+        setModalMessage('No account found with this email');
+      } else {
+        const user = JSON.parse(userData);
+        if (user.password === password) {
+          setModalTitle('Success');
+          setModalMessage('Login Successful!');
+          setModalVisible(true);
+
+          // Navigate after modal is visible for a short delay
+          setTimeout(() => {
+            setModalVisible(false);
+            navigation.replace('MainTabs');
+          }, 1000);
+        } else {
+          setModalTitle('Error');
+          setModalMessage('Incorrect password');
+          setModalVisible(true);
+        }
+      }
+    } catch (error) {
+      setModalTitle('Error');
+      setModalMessage('Something went wrong!');
+      setModalVisible(true);
+      console.error(error);
+    }
   };
 
   return (
@@ -47,10 +76,11 @@ export default function LoginScreen({ navigation }) {
         </Pressable>
 
         <Pressable onPress={() => navigation.navigate('Signup')}>
-          <Text style={styles.signupText}>Don’t have an account? Sign Up</Text>
+          <Text style={styles.signupText}>Don't have an account? Sign Up</Text>
         </Pressable>
       </View>
 
+      {/* Modal for messages */}
       <Modal transparent visible={modalVisible} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
