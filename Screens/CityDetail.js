@@ -10,7 +10,6 @@ import {
 
 const { width } = Dimensions.get('window');
 
-// City data with descriptions and tourist spots
 const cityData = {
   'Hunza': {
     image: 'https://img.lemde.fr/2025/06/23/0/0/5568/3712/1440/960/60/0/e4b359d_upload-1-vfe4vhskzug6-landrin1.jpg',
@@ -215,59 +214,23 @@ export default function CityDetail({ route, navigation }) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#fff',
+    flex: 1, backgroundColor: '#fff',},
+  mainImage: {width: width,  height: 250, resizeMode: 'cover',
   },
-  mainImage: {
-    width: width,
-    height: 250,
-    resizeMode: 'cover',
+  contentContainer: { padding: 20,
   },
-  contentContainer: {
-    padding: 20,
+  sectionTitle: { fontSize: 24,  fontWeight: 'bold',  color: '#000', marginBottom: 10, marginTop: 10,
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 10,
-    marginTop: 10,
+  description: {  fontSize: 16, color: '#555', lineHeight: 24, textAlign: 'justify', marginBottom: 20,
   },
-  description: {
-    fontSize: 16,
-    color: '#555',
-    lineHeight: 24,
-    textAlign: 'justify',
-    marginBottom: 20,
+  spotsContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 20,
   },
-  spotsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 20,
+  spotCard: { width: (width - 60) / 3, marginBottom: 15, alignItems: 'center',
   },
-  spotCard: {
-    width: (width - 60) / 3,
-    marginBottom: 15,
-    alignItems: 'center',
+  spotImage: { width: '100%',  height: 200,  borderRadius: 12,  marginBottom: 8,
   },
-  spotImage: {
-    width: '100%',
-    height: 200, // Increased height to 200
-    borderRadius: 12,
-    marginBottom: 8,
+  spotName: { fontSize: 12, fontWeight: '600', color: '#333', textAlign: 'center', flexWrap: 'wrap',
   },
-  spotName: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#333',
-    textAlign: 'center',
-    flexWrap: 'wrap',
-  },
-  errorText: {
-    fontSize: 18,
-    color: '#999',
-    textAlign: 'center',
-    marginTop: 50,
+  errorText: { fontSize: 18, color: '#999', textAlign: 'center', marginTop: 50,
   },
 });
