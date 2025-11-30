@@ -7,7 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
-// Background image
+
 const bgImage = require('../assets/image.jpeg');
 const { width } = Dimensions.get("window");
 
@@ -23,7 +23,7 @@ export default function Signup({ navigation }) {
   const [modalMessage, setModalMessage] = useState("");
   const [modalCallback, setModalCallback] = useState(null);
 
-  // Handle signup
+  
   const handleSignup = async () => {
     if (!name || !email || !password || !confirmPassword) {
       showModal("Error", "Please fill all fields!");
@@ -44,7 +44,7 @@ export default function Signup({ navigation }) {
 
       await AsyncStorage.setItem(email, JSON.stringify({ name, email, password }));
       showModal("Success", "Account created successfully!", () => {
-        navigation.navigate("Login"); // ✅ Navigate after account creation
+        navigation.navigate("Login"); 
       });
 
     } catch (error) {
@@ -53,7 +53,7 @@ export default function Signup({ navigation }) {
     }
   };
 
-  // Show modal
+ 
   const showModal = (title, message, callback = null) => {
     setModalTitle(title);
     setModalMessage(message);
@@ -61,7 +61,7 @@ export default function Signup({ navigation }) {
     setModalCallback(() => callback);
   };
 
-  // Close modal
+
   const closeModal = () => {
     setModalVisible(false);
     if (modalCallback) {

@@ -75,14 +75,26 @@ function HomeScreen() {
                 <View style={styles.cardContent}>
                   <Text style={styles.cardtext}>{city.display}</Text>
 
-                  {/* Sirf yeh button clickable hai */}
-                  <TouchableOpacity
-                    style={styles.weatherButton}
-                    onPress={() => navigation.navigate('Weather', { city: city.name })}
-                  >
-                    <Ionicons name="cloudy-outline" size={18} color="white" />
-                    <Text style={styles.weatherButtonText}> Check Weather</Text>
-                  </TouchableOpacity>
+                  {/* Button Container for both buttons */}
+                  <View style={styles.buttonsRow}>
+                    {/* Explore Button */}
+                    <TouchableOpacity
+                      style={styles.exploreButton}
+                      onPress={() => navigation.navigate('CityDetail', { cityName: city.name })}
+                    >
+                      <Ionicons name="compass-outline" size={16} color="white" />
+                      <Text style={styles.buttonTextSmall}> Explore</Text>
+                    </TouchableOpacity>
+
+                    {/* Weather Button */}
+                    <TouchableOpacity
+                      style={styles.weatherButton}
+                      onPress={() => navigation.navigate('Weather', { city: city.name })}
+                    >
+                      <Ionicons name="cloudy-outline" size={16} color="white" />
+                      <Text style={styles.buttonTextSmall}> Weather</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </ImageBackground>
             </View>
@@ -124,7 +136,7 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 15,
     margin: 8,
-    height: 200,
+    height: 220,
     overflow: "hidden",
     elevation: 6,
     backgroundColor: '#fff',
@@ -140,23 +152,45 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0,0,0,0.7)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 3,
-    marginBottom: 8,
+    marginBottom: 10,
   },
 
-  // Yeh naya dedicated weather button
+  // Buttons Row Container
+  buttonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    width: '100%',
+  },
+
+  // Explore Button
+  exploreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(24, 124, 58, 0.95)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 18,
+    flex: 1,
+    justifyContent: 'center',
+  },
+
+  // Weather Button
   weatherButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(24, 124, 58, 0.9)',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    marginTop: 5,
+    backgroundColor: 'rgba(41, 128, 185, 0.95)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 18,
+    flex: 1,
+    justifyContent: 'center',
   },
-  weatherButtonText: {
+
+  buttonTextSmall: {
     color: "white",
     fontWeight: "bold",
-    fontSize: 14,
+    fontSize: 13,
   },
 });
 
