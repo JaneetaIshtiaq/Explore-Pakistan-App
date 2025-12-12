@@ -8,6 +8,7 @@ import LoginScreen from "./Screens/Login";
 import Signup from "./Screens/Signup";
 import HomeScreen from "./Screens/Home";
 import GalleryScreen from "./Screens/GalleryScreen";
+
 import WeatherScreen from "./Screens/Weather";
 import CityDetail from "./Screens/CityDetail";
 
