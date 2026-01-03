@@ -1,7 +1,20 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, ImageBackground, ScrollView, TouchableOpacity, useWindowDimensions, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  ImageBackground,
+  ScrollView,
+  TouchableOpacity,
+  useWindowDimensions,
+  TextInput,
+  Alert,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { Accelerometer } from 'expo-sensors';
+import * as Location from 'expo-location';
 
 function HomeScreen() {
   const { width } = useWindowDimensions();
@@ -10,30 +23,76 @@ function HomeScreen() {
   const isLargeScreen = width > 800;
   const cardWidth = isLargeScreen ? '30%' : '45%';
 
-  const cities = [
+  const initialCities = [
     { name: "Hunza", display: "Hunza Valley" },
     { name: "Islamabad", display: "Islamabad" },
     { name: "Lahore", display: "Lahore" },
     { name: "Peshawar", display: "Peshawar" },
-    { name: "Murree", display: "Muree" },
-    { name: "Abbottabad", display: "Abottabad" },
+    { name: "Murree", display: "Murree" },
+    { name: "Abbottabad", display: "Abbottabad" },
     { name: "Naran", display: "Naran Kaghan" },
     { name: "Gilgit", display: "Gilgit Baltistan" },
     { name: "Rawalpindi", display: "Rawalpindi" },
   ];
 
+  const [cities, setCities] = useState(initialCities);
+  const [location, setLocation] = useState(null);
+
   const cityImages = {
-    "Hunza": "https://img.lemde.fr/2025/06/23/0/0/5568/3712/1440/960/60/0/e4b359d_upload-1-vfe4vhskzug6-landrin1.jpg",
-    "Islamabad": "https://media.istockphoto.com/id/519767045/photo/shah-faisal-mosque-islamabad-pakistan.jpg?s=612x612&w=0&k=20&c=YOdDSuvmaLxQUaOMlrv58-NnqWqqlNju-w3PiaT_FuY=",
-    "Lahore": "https://t4.ftcdn.net/jpg/03/20/99/65/360_F_320996529_wTC3BL4FQSPSw5A0b7FSZF5rRuMwxuNj.jpg",
-    "Peshawar": "https://thumbs.dreamstime.com/b/islamia-college-peshawar-pakistan-educational-institution-located-city-khyber-pakhtunkhwa-province-50150158.jpg",
-    "Murree": "https://thumbs.dreamstime.com/b/snowy-hills-pakistan-situated-muree-top-moonlight-hotels-254172858.jpg",
-    "Abbottabad": "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2d/a3/f5/6f/caption.jpg?w=1200&h=-1&s=1",
-    "Naran": "https://t3.ftcdn.net/jpg/02/57/97/00/360_F_257970006_AdhgnZEVu0lYxMFKYJpzAEV6vuVbvd9v.jpg",
-    "Gilgit": "https://plus.unsplash.com/premium_photo-1664304370732-9374eac016f9?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Z2lsZ2l0JTIwYmFsdGlzdGFufGVufDB8fDB8fHww",
-    "Rawalpindi": "https://i.ytimg.com/vi/Duotim58xWQ/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLD4DNrkKDwHOmCpiRsGV1PLJK5Jxw",
+    Hunza: "https://img.lemde.fr/2025/06/23/0/0/5568/3712/1440/960/60/0/e4b359d_upload-1-vfe4vhskzug6-landrin1.jpg",
+    Islamabad: "https://media.istockphoto.com/id/519767045/photo/shah-faisal-mosque-islamabad-pakistan.jpg",
+    Lahore: "https://t4.ftcdn.net/jpg/03/20/99/65/360_F_320996529_wTC3BL4FQSPSw5A0b7FSZF5rRuMwxuNj.jpg",
+    Peshawar: "https://thumbs.dreamstime.com/b/islamia-college-peshawar-pakistan-50150158.jpg",
+    Murree: "https://thumbs.dreamstime.com/b/snowy-hills-pakistan-254172858.jpg",
+    Abbottabad: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2d/a3/f5/6f/caption.jpg",
+    Naran: "https://t3.ftcdn.net/jpg/02/57/97/00/360_F_257970006_AdhgnZEVu0lYxMFKYJpzAEV6vuVbvd9v.jpg",
+    Gilgit: "https://plus.unsplash.com/premium_photo-1664304370732-9374eac016f9",
+    Rawalpindi: "https://i.ytimg.com/vi/Duotim58xWQ/hq720.jpg",
   };
 
+  // ------------------- ACCELEROMETER -------------------
+  useEffect(() => {
+    let subscription = Accelerometer.addListener(({ x, y, z }) => {
+      const totalAcceleration = Math.sqrt(x * x + y * y + z * z);
+      if (totalAcceleration > 1.5) shuffleCities();
+    });
+    Accelerometer.setUpdateInterval(300);
+    return () => subscription && subscription.remove();
+  }, []);
+
+  const shuffleCities = () => {
+    setCities(prevCities => {
+      const shuffled = [...prevCities];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    });
+  };
+
+  // ------------------- LOCATION -------------------
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'Enable location to use Map feature');
+        return;
+      }
+      let loc = await Location.getCurrentPositionAsync({});
+      setLocation(loc.coords);
+    })();
+  }, []);
+
+  const openMap = () => {
+    if (!location) {
+      Alert.alert('Location not available yet', 'Please wait...');
+      return;
+    }
+    navigation.navigate('Map', { userLocation: location });
+  };
+
+  // ------------------- RENDER -------------------
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -44,14 +103,14 @@ function HomeScreen() {
         >
           <View style={styles.overlay} />
           <Text style={styles.maintext}>Discover the beauty of Pakistan</Text>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Start Exploring</Text>
+
+          <TouchableOpacity style={styles.button} onPress={openMap}>
+            <Text style={styles.buttonText}>Open Map</Text>
           </TouchableOpacity>
         </ImageBackground>
       </View>
 
       <View style={styles.container2}>
-        {/* Search Bar */}
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#187c3a" style={{ marginRight: 10 }} />
           <TextInput
@@ -74,27 +133,13 @@ function HomeScreen() {
                 <View style={styles.overlay} />
                 <View style={styles.cardContent}>
                   <Text style={styles.cardtext}>{city.display}</Text>
-
-                  {/* Button Container for both buttons */}
-                  <View style={styles.buttonsRow}>
-                    {/* Explore Button */}
-                    <TouchableOpacity
-                      style={styles.exploreButton}
-                      onPress={() => navigation.navigate('CityDetail', { cityName: city.name })}
-                    >
-                      <Ionicons name="compass-outline" size={16} color="white" />
-                      <Text style={styles.buttonTextSmall}> Explore</Text>
-                    </TouchableOpacity>
-
-                    {/* Weather Button */}
-                    <TouchableOpacity
-                      style={styles.weatherButton}
-                      onPress={() => navigation.navigate('Weather', { city: city.name })}
-                    >
-                      <Ionicons name="cloudy-outline" size={16} color="white" />
-                      <Text style={styles.buttonTextSmall}> Weather</Text>
-                    </TouchableOpacity>
-                  </View>
+                  <TouchableOpacity
+                    style={styles.exploreButtonFull}
+                    onPress={() => navigation.navigate('CityDetail', { cityName: city.name })}
+                  >
+                    <Ionicons name="compass-outline" size={16} color="white" />
+                    <Text style={styles.buttonTextSmall}> Explore</Text>
+                  </TouchableOpacity>
                 </View>
               </ImageBackground>
             </View>
@@ -108,90 +153,20 @@ function HomeScreen() {
 const styles = StyleSheet.create({
   container: { backgroundColor: '#187c3a', paddingBottom: 40 },
   bgimg: { marginHorizontal: 10, marginTop: 30, borderRadius: 20, overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
-  overlay: { backgroundColor: 'rgba(0,0,0,0.4)', ...StyleSheet.absoluteFillObject },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)' },
   maintext: { fontSize: 32, color: 'white', fontWeight: 'bold', textAlign: 'center', marginHorizontal: 20 },
   button: { backgroundColor: '#187c3a', paddingHorizontal: 30, paddingVertical: 12, borderRadius: 25, marginTop: 20 },
   buttonText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
-
   container2: { backgroundColor: 'white', flex: 1 },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 25,
-    paddingHorizontal: 15,
-    marginHorizontal: 20,
-    marginTop: 30,
-    marginBottom: 20,
-    shadowColor: '#187c3a',
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
-  },
-
+  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderRadius: 25, paddingHorizontal: 15, marginHorizontal: 20, marginTop: 30, marginBottom: 20, elevation: 5 },
   citiesheading: { fontSize: 28, fontWeight: 'bold', color: '#333', marginLeft: 30, marginBottom: 20 },
-
-  cards: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", paddingHorizontal: 5 },
-  
-  card: {
-    borderRadius: 15,
-    margin: 8,
-    height: 220,
-    overflow: "hidden",
-    elevation: 6,
-    backgroundColor: '#fff',
-  },
+  cards: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
+  card: { borderRadius: 15, margin: 8, height: 220, overflow: 'hidden', elevation: 6, backgroundColor: '#fff' },
   cardbg: { flex: 1, justifyContent: 'flex-end' },
   cardContent: { padding: 15, alignItems: 'center' },
-
-  cardtext: {
-    color: "white",
-    fontSize: 19,
-    fontWeight: "bold",
-    textAlign: "center",
-    textShadowColor: 'rgba(0,0,0,0.7)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
-    marginBottom: 10,
-  },
-
-  // Buttons Row Container
-  buttonsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-    width: '100%',
-  },
-
-  // Explore Button
-  exploreButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(24, 124, 58, 0.95)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 18,
-    flex: 1,
-    justifyContent: 'center',
-  },
-
-  // Weather Button
-  weatherButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(41, 128, 185, 0.95)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 18,
-    flex: 1,
-    justifyContent: 'center',
-  },
-
-  buttonTextSmall: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 13,
-  },
+  cardtext: { color: 'white', fontSize: 19, fontWeight: 'bold', textAlign: 'center', marginBottom: 12 },
+  exploreButtonFull: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(24,124,58,0.95)', paddingVertical: 10, borderRadius: 20, width: '100%' },
+  buttonTextSmall: { color: 'white', fontWeight: 'bold', fontSize: 14 },
 });
 
 export default HomeScreen;

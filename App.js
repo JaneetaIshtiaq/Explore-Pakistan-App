@@ -8,15 +8,21 @@ import LoginScreen from "./Screens/Login";
 import Signup from "./Screens/Signup";
 import HomeScreen from "./Screens/Home";
 import GalleryScreen from "./Screens/GalleryScreen";
-
 import WeatherScreen from "./Screens/Weather";
 import CityDetail from "./Screens/CityDetail";
+import MapScreen from './Screens/MapScreen';
+
+
 
 // ------------------- MAIN TABS ---------------------
 const MainTabs = createMaterialTopTabNavigator({
   screens: {
     Home: HomeScreen,
     Gallery: GalleryScreen,
+    Map: {
+  screen: MapScreen,
+  options: { title: 'Explore Map' },
+},
   },
   screenOptions: {
     tabBarActiveTintColor: "#187c3a",

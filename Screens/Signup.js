@@ -11,7 +11,10 @@ import { LinearGradient } from "expo-linear-gradient";
 const bgImage = require('../assets/image.jpeg');
 const { width } = Dimensions.get("window");
 
-export default function Signup({ navigation }) {
+import { useNavigation } from "@react-navigation/native";
+
+export default function Signup() {
+  const navigation = useNavigation();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,7 +47,7 @@ export default function Signup({ navigation }) {
 
       await AsyncStorage.setItem(email, JSON.stringify({ name, email, password }));
       showModal("Success", "Account created successfully!", () => {
-        navigation.navigate("Login"); 
+        navigation.navigate("LoginScreen"); 
       });
 
     } catch (error) {
@@ -132,7 +135,7 @@ export default function Signup({ navigation }) {
             {/* Login link always navigates */}
             <View style={styles.loginContainer}>
               <Text style={styles.loginText}>Already have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+              <TouchableOpacity onPress={() => navigation.navigate("LoginScreen")}>
                 <Text style={styles.loginLink}>Login</Text>
               </TouchableOpacity>
             </View>

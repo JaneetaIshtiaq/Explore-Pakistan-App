@@ -7,8 +7,10 @@ import {
   Image,
   Dimensions,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import axios from 'axios';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -24,49 +26,38 @@ const cityData = {
     spots: ['Attabad Lake', 'Rakaposhi View', 'Baltit Fort'],
   },
   'Islamabad': {
-    defaultImage: 'https://media.istockphoto.com/id/519767045/photo/shah-faisal-mosque-islamabad-pakistan.jpg?s=612x612&w=0&k=20&c=YOdDSuvmaLxQUaOMlrv58-NnqWqqlNju-w3PiaT_FuY=',
-    description: 'Islamabad, the capital city of Pakistan, is renowned for its high standards of living, safety, and abundant greenery. Nestled against the backdrop of the Margalla Hills, the city is a masterpiece of modern urban planning. It features wide tree-lined streets, elegant public buildings, and the massive Faisal Mosque. It is a hub for politics, diplomacy, and nature lovers who enjoy hiking on the Margalla trails.',
-    spots: ['Faisal Mosque', 'Pakistan Monument', 'Daman-e-Koh'],
+    defaultImage: 'https://example.com/islamabad.jpg',
+    description: 'Islamabad is the capital city of Pakistan. It is known for its high standard of living, safety, and abundant greenery.',
+    spots: ['Faisal Mosque', 'Daman-e-Koh', 'Pakistan Monument'],
   },
   'Lahore': {
-    defaultImage: 'https://t4.ftcdn.net/jpg/03/20/99/65/360_F_320996529_wTC3BL4FQSPSw5A0b7FSZF5rRuMwxuNj.jpg',
-    description: 'Lahore is the heart of Pakistan and the capital of the Punjab province. It is a city of gardens and a historical treasure trove, boasting magnificent Mughal-era architecture like the Badshahi Mosque and Lahore Fort. Known as the cultural capital, Lahore is famous for its lively food streets, bustling bazaars, and the warmth of its people. The saying goes, "Jinhe Lahore nai dekhya, o jamya e nai".',
-    spots: ['Badshahi Mosque', 'Lahore Fort', 'Shalimar Gardens'],
+    defaultImage: 'https://example.com/lahore.jpg',
+    description: 'Lahore is the cultural capital of Pakistan, famous for its Mughal architecture, food, and vibrant culture.',
+    spots: ['Badshahi Mosque', 'Lahore Fort', 'Minar-e-Pakistan'],
   },
-  'Peshawar': {
-    defaultImage: 'https://thumbs.dreamstime.com/b/islamia-college-peshawar-pakistan-educational-institution-located-city-khyber-pakhtunkhwa-province-50150158.jpg',
-    description: 'Peshawar is the capital of Khyber Pakhtunkhwa and one of the oldest living cities in South Asia. Standing at the eastern entrance of the Khyber Pass, it has been a center of trade and culture for centuries. The city is famous for its rich Pashtun hospitality, the historic Qissa Khwani Bazaar (Market of Storytellers), and delicious cuisine like Chapli Kabab and Namak Mandi Karahi.',
-    spots: ['Islamia College Peshawar', 'Bala Hisar Fort', 'Qissa Khwani Bazaar'],
+  'Karachi': {
+    defaultImage: 'https://example.com/karachi.jpg',
+    description: 'Karachi is the largest city and economic hub of Pakistan, located on the Arabian Sea coast.',
+    spots: ['Clifton Beach', 'Mazar-e-Quaid', 'Port Grand'],
+  },
+  'Swat': {
+    defaultImage: 'https://example.com/swat.jpg',
+    description: 'Swat Valley is known as the "Switzerland of the East" for its stunning mountains, lakes, and waterfalls.',
+    spots: ['Malam Jabba', 'Kalam Valley', 'Mahodand Lake'],
   },
   'Murree': {
-    defaultImage: 'https://thumbs.dreamstime.com/b/snowy-hills-pakistan-situated-muree-top-moonlight-hotels-254172858.jpg',
-    description: 'Murree is Pakistan’s most popular hill station, founded during the British colonial era. Located just an hour\'s drive from Islamabad, it offers cool summers and snowy winters. The town is centered around the famous Mall Road, lined with shops and restaurants. Tourists flock here to enjoy the chairlifts at Pindi Point and Patriata, and to witness the lush pine forests covered in snow.',
-    spots: ['Murree Mall Road', 'Patriata Chair Lift', 'Kashmir Point'],
-  },
-  'Abbottabad': {
-    defaultImage: 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2d/a3/f5/6f/caption.jpg?w=1200&h=-1&s=1',
-    description: 'Abbottabad, known as the "City of Pines," is a gateway to the northern areas of Pakistan. It is famous for its pleasant weather, high-standard educational institutions, and the Pakistan Military Academy (PMA) Kakul. Surrounded by the Sarban Hills, it serves as a transit point for tourists heading to Naran and Nathia Gali, but also offers its own attractions like the beautiful Ilyasi Mosque and Shimla Hill park.',
-    spots: ['Ilyasi Mosque', 'Shimla Hill Abbottabad', 'Thandiani'],
-  },
-  'Naran': {
-    defaultImage: 'https://t3.ftcdn.net/jpg/02/57/97/00/360_F_257970006_AdhgnZEVu0lYxMFKYJpzAEV6vuVbvd9v.jpg',
-    description: 'Naran is a medium-sized town in the upper Kaghan Valley and one of the most popular tourist destinations in Pakistan. It is situated on the banks of the Kunhar River. Naran serves as the base for visiting the legendary Saif-ul-Malook Lake, Lulusar Lake, and Babusar Top. The valley is known for its trout fishing, river rafting, and breathtaking alpine scenery.',
-    spots: ['Saif-ul-Malook Lake', 'Ansoo Lake', 'Lulusar Lake'],
-  },
-  'Gilgit': {
-    defaultImage: 'https://plus.unsplash.com/premium_photo-1664304370732-9374eac016f9?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Z2lsZ2l0JTIwYmFsdGlzdGFufGVufDB8fDB8fHww',
-    description: 'Gilgit is the capital city of Gilgit-Baltistan and a major hub for mountaineers and trekkers heading to the Karakoram and Himalayan ranges. It is strategically located on the Karakoram Highway. The region is famous for its hanging bridges, ancient rock carvings, and proximity to Naltar Valley. It is a melting pot of various cultures and languages of the north.',
-    spots: ['K2 Base Camp', 'Deosai Plains', 'Fairy Meadows'],
-  },
-  'Rawalpindi': {
-    defaultImage: 'https://i.ytimg.com/vi/Duotim58xWQ/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLD4DNrkKDwHOmCpiRsGV1PLJK5Jxw',
-    description: 'Rawalpindi, commonly known as Pindi, is the twin city of Islamabad but carries a completely different vibe. It is a historic, bustling city with narrow streets, vibrant bazaars, and colonial-era architecture. It is the headquarters of the Pakistan Army and a major commercial hub. Raja Bazaar is its beating heart, offering everything from spices to fabrics in a chaotic yet energetic atmosphere.',
-    spots: ['Raja Bazaar Rawalpindi', 'Ayub National Park', 'Lok Virsa Museum'],
+    defaultImage: 'https://example.com/murree.jpg',
+    description: 'Murree is a popular hill station near Islamabad, known for its pleasant climate and scenic beauty.',
+    spots: ['Mall Road', 'Patriata', 'Ayubia'],
   },
 };
 
-export default function CityDetail({ route, navigation }) {
-  const cityName = route?.params?.cityName || 'Islamabad';
+export default function CityDetail() {
+  // Use hooks to get navigation and route props
+  const navigation = useNavigation();
+  const route = useRoute();
+  
+  const cityName = route?.params?.cityName || 'Hunza';
   const cityInfo = cityData[cityName];
 
   const [mainImage, setMainImage] = useState(cityInfo?.defaultImage);
@@ -82,11 +73,8 @@ export default function CityDetail({ route, navigation }) {
   const fetchDynamicImages = async () => {
     setLoading(true);
     let usedIds = new Set(); 
-
     try {
-      
       const mainQuery = `${cityName} Pakistan travel nature`;
-      
       const mainReq = axios.get(UNSPLASH_URL, {
         params: { query: mainQuery, per_page: 30 },
         headers: { Authorization: `Client-ID ${ACCESS_KEY}` },
@@ -100,50 +88,35 @@ export default function CityDetail({ route, navigation }) {
       );
 
       const [mainRes, ...spotRes] = await Promise.all([mainReq, ...spotRequests]);
-
       const mainPool = mainRes.data.results || [];
       
-      // --- ALLOCATION PHASE ---
-
-     
       if (mainPool.length > 0) {
-        
         const randomIdx = Math.floor(Math.random() * mainPool.length);
         const selected = mainPool[randomIdx];
         setMainImage(selected.urls.regular);
         usedIds.add(selected.id); 
       }
 
-      
       const spotsWithImages = cityInfo.spots.map((name, index) => {
         const spotSpecificPool = spotRes[index].data.results || [];
-        
         let selectedUrl = null;
-
-       
         const validSpotImages = spotSpecificPool.filter(img => !usedIds.has(img.id));
-        
         if (validSpotImages.length > 0) {
           const rand = Math.floor(Math.random() * validSpotImages.length);
           const winner = validSpotImages[rand];
           selectedUrl = winner.urls.small;
           usedIds.add(winner.id); 
-        } 
-        else {
-         
+        } else {
           const validBackupImages = mainPool.filter(img => !usedIds.has(img.id));
-          
           if (validBackupImages.length > 0) {
             const rand = Math.floor(Math.random() * validBackupImages.length);
             const winner = validBackupImages[rand];
             selectedUrl = winner.urls.small;
             usedIds.add(winner.id); 
           } else {
-             
-             selectedUrl = 'https://via.placeholder.com/300x400?text=No+Photo';
+            selectedUrl = 'https://via.placeholder.com/300x400?text=No+Photo';
           }
         }
-
         return {
           name: name,
           image: selectedUrl,
@@ -152,10 +125,8 @@ export default function CityDetail({ route, navigation }) {
 
       setSpotImages(spotsWithImages);
       setLoading(false);
-
     } catch (error) {
       console.error("API Error:", error);
-      // Fallback
       const fallbackSpots = cityInfo.spots.map(name => ({
         name: name,
         image: cityInfo.defaultImage
@@ -165,13 +136,29 @@ export default function CityDetail({ route, navigation }) {
     }
   };
 
-  if (!cityInfo) return null;
+  const handleWeatherPress = () => {
+    if (navigation && navigation.navigate) {
+      console.log('Navigating to Weather screen with city:', cityName);
+      navigation.navigate('Weather', { city: cityName });
+    } else {
+      console.error('Navigation not available');
+      alert('Cannot navigate to weather screen');
+    }
+  };
+
+  if (!cityInfo) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.errorText}>City information not found for "{cityName}"</Text>
+      </View>
+    );
+  }
 
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={{ marginTop: 10 }}>Finding unique photos...</Text>
+        <ActivityIndicator size="large" color="#187c3a" />
+        <Text style={styles.loadingText}>Finding unique photos...</Text>
       </View>
     );
   }
@@ -185,7 +172,6 @@ export default function CityDetail({ route, navigation }) {
         <Text style={styles.description}>{cityInfo.description}</Text>
 
         <Text style={styles.sectionTitle}>Top Tourist Spots</Text>
-        
         <View style={styles.spotsContainer}>
           {spotImages.map((spot, index) => (
             <View key={index} style={styles.spotCard}>
@@ -194,6 +180,17 @@ export default function CityDetail({ route, navigation }) {
             </View>
           ))}
         </View>
+
+        {/* Weather Button */}
+        <TouchableOpacity
+          style={styles.weatherButton}
+          onPress={handleWeatherPress}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.weatherButtonText}>
+            🌤️ Check Weather for {cityName}
+          </Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -208,6 +205,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  errorText: {
+    fontSize: 18,
+    color: '#d32f2f',
+    textAlign: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#187c3a',
+    marginTop: 10,
   },
   mainImage: {
     width: width,
@@ -220,7 +229,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#187c3a',
     marginBottom: 10,
     marginTop: 10,
   },
@@ -235,14 +244,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 10,
+    flexWrap: 'wrap',
   },
   spotCard: {
-    width: (width - 50) / 3, 
+    width: (width - 50) / 3,
     alignItems: 'center',
+    marginBottom: 15,
   },
   spotImage: {
     width: '100%',
-    height: 220, 
+    height: 220,
     borderRadius: 10,
     marginBottom: 8,
     backgroundColor: '#eee',
@@ -253,5 +264,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     textAlign: 'center',
+  },
+  weatherButton: {
+    marginTop: 30,
+    marginBottom: 20,
+    backgroundColor: '#187c3a',
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+  weatherButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
