@@ -1,26 +1,32 @@
 import React, { useState } from "react";
 import { 
   View, Text, TextInput, TouchableOpacity, StyleSheet, 
-  KeyboardAvoidingView, Platform, Dimensions, ImageBackground, Modal 
+  KeyboardAvoidingView, Platform, Dimensions, ImageBackground, Modal, ActivityIndicator 
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from "@react-navigation/native";
 
+// --- FIREBASE IMPORTS (Added) ---
+import { auth, db } from "../firebaseConfig"; 
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 
 const bgImage = require('../assets/image.jpeg');
 const { width } = Dimensions.get("window");
 
-import { useNavigation } from "@react-navigation/native";
-
 export default function Signup() {
   const navigation = useNavigation();
+  
+  // Form States
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Loading state add kia
 
+  // Modal States
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
@@ -28,6 +34,7 @@ export default function Signup() {
 
   
   const handleSignup = async () => {
+    // 1. Basic Validation
     if (!name || !email || !password || !confirmPassword) {
       showModal("Error", "Please fill all fields!");
       return;
@@ -38,21 +45,44 @@ export default function Signup() {
       return;
     }
 
-    try {
-      const existingUser = await AsyncStorage.getItem(email);
-      if (existingUser !== null) {
-        showModal("Error", "Account already exists with this email!");
-        return;
-      }
+    if (password.length < 6) {
+      showModal("Error", "Password should be at least 6 characters.");
+      return;
+    }
 
-      await AsyncStorage.setItem(email, JSON.stringify({ name, email, password }));
+    setIsLoading(true); // Loading start
+
+    try {
+      // 2. Firebase Authentication (Create User)
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // 3. Save Extra Data to Firestore Database
+      await setDoc(doc(db, "users", user.uid), {
+        fullName: name,
+        email: email,
+        uid: user.uid,
+        createdAt: new Date().toString(),
+      });
+
+      setIsLoading(false); // Loading stop
+
+      // 4. Success Message
       showModal("Success", "Account created successfully!", () => {
         navigation.navigate("LoginScreen"); 
       });
 
     } catch (error) {
+      setIsLoading(false); // Loading stop
       console.error(error);
-      showModal("Error", "Something went wrong!");
+
+      // Error Handling (User Friendly Messages)
+      let msg = "Something went wrong!";
+      if (error.code === 'auth/email-already-in-use') msg = "This email is already registered!";
+      if (error.code === 'auth/invalid-email') msg = "Please enter a valid email address.";
+      if (error.code === 'auth/network-request-failed') msg = "Internet connection failed.";
+      
+      showModal("Error", msg);
     }
   };
 
@@ -126,9 +156,17 @@ export default function Signup() {
               />
             </View>
 
-            <TouchableOpacity onPress={handleSignup} style={{ width: "100%" }}>
+            <TouchableOpacity 
+              onPress={handleSignup} 
+              style={{ width: "100%" }}
+              disabled={isLoading} // Loading ke waqt button disable
+            >
               <LinearGradient colors={["#006400", "#00b300"]} start={[0,0]} end={[1,0]} style={styles.button}>
-                <Text style={styles.buttonText}>Sign Up</Text>
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>Sign Up</Text>
+                )}
               </LinearGradient>
             </TouchableOpacity>
 
@@ -147,8 +185,10 @@ export default function Signup() {
       <Modal transparent visible={modalVisible} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
-            <Text style={styles.modalTitle}>{modalTitle}</Text>
-            <Text style={{ marginBottom: 15 }}>{modalMessage}</Text>
+            <Text style={[styles.modalTitle, { color: modalTitle === 'Error' ? 'red' : '#187c3a' }]}>
+              {modalTitle}
+            </Text>
+            <Text style={{ marginBottom: 15, textAlign: 'center' }}>{modalMessage}</Text>
             <TouchableOpacity style={styles.okButton} onPress={closeModal}>
               <Text style={styles.okButtonText}>OK</Text>
             </TouchableOpacity>
@@ -175,7 +215,7 @@ const styles = StyleSheet.create({
   loginLink: { color:'blue', fontSize:14, fontWeight:'bold', marginLeft:3 },
   modalOverlay: { flex:1, backgroundColor:'rgba(0,0,0,0.4)', justifyContent:'center', alignItems:'center' },
   modal: { backgroundColor:'white', padding:25, borderRadius:8, alignItems:'center', width:'80%' },
-  modalTitle: { fontWeight:'bold', fontSize:18, marginBottom:10, color:'#187c3a' },
+  modalTitle: { fontWeight:'bold', fontSize:18, marginBottom:10 },
   okButton: { backgroundColor:'#187c3a', paddingVertical:8, paddingHorizontal:25, borderRadius:5 },
   okButtonText: { color:'#fff', fontWeight:'bold', fontSize:16 }
 });

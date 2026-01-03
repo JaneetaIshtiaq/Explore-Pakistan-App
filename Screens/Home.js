@@ -10,11 +10,16 @@ import {
   useWindowDimensions,
   TextInput,
   Alert,
+  Image, // Image component add kiya
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Accelerometer } from 'expo-sensors';
 import * as Location from 'expo-location';
+
+// --- NEW IMPORTS FOR CAMERA ---
+import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function HomeScreen() {
   const { width } = useWindowDimensions();
@@ -23,6 +28,7 @@ function HomeScreen() {
   const isLargeScreen = width > 800;
   const cardWidth = isLargeScreen ? '30%' : '45%';
 
+  // --- CITIES DATA ---
   const initialCities = [
     { name: "Hunza", display: "Hunza Valley" },
     { name: "Islamabad", display: "Islamabad" },
@@ -37,6 +43,9 @@ function HomeScreen() {
 
   const [cities, setCities] = useState(initialCities);
   const [location, setLocation] = useState(null);
+  
+  // --- CAMERA STATE ---
+  const [profileImage, setProfileImage] = useState(null);
 
   const cityImages = {
     Hunza: "https://img.lemde.fr/2025/06/23/0/0/5568/3712/1440/960/60/0/e4b359d_upload-1-vfe4vhskzug6-landrin1.jpg",
@@ -48,6 +57,43 @@ function HomeScreen() {
     Naran: "https://t3.ftcdn.net/jpg/02/57/97/00/360_F_257970006_AdhgnZEVu0lYxMFKYJpzAEV6vuVbvd9v.jpg",
     Gilgit: "https://plus.unsplash.com/premium_photo-1664304370732-9374eac016f9",
     Rawalpindi: "https://i.ytimg.com/vi/Duotim58xWQ/hq720.jpg",
+  };
+
+  // ------------------- LOAD PROFILE IMAGE -------------------
+  useEffect(() => {
+    (async () => {
+      try {
+        const savedImage = await AsyncStorage.getItem('profileImage');
+        if (savedImage) setProfileImage(savedImage);
+      } catch (e) {
+        console.log('Failed to load image');
+      }
+    })();
+  }, []);
+
+  // ------------------- PICK IMAGE FUNCTION -------------------
+  const pickImage = async () => {
+    // 1. Ask Permission
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'Sorry, we need camera permissions to make this work!');
+      return;
+    }
+
+    // 2. Open Camera
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1], // Square photo
+      quality: 0.5,
+    });
+
+    if (!result.canceled) {
+      const imageUri = result.assets[0].uri;
+      setProfileImage(imageUri);
+      await AsyncStorage.setItem('profileImage', imageUri);
+    }
   };
 
   // ------------------- ACCELEROMETER -------------------
@@ -76,7 +122,7 @@ function HomeScreen() {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Enable location to use Map feature');
+        // Alert.alert('Permission Denied', 'Enable location to use Map feature');
         return;
       }
       let loc = await Location.getCurrentPositionAsync({});
@@ -96,7 +142,31 @@ function HomeScreen() {
   return (
     <ScrollView>
       <View style={styles.container}>
-        <StatusBar style="auto" />
+        <StatusBar style="light" />
+        
+        {/* --- NEW HEADER WITH CAMERA --- */}
+        <View style={styles.topHeader}>
+          <View>
+             <Text style={styles.welcomeLabel}>Welcome Back,</Text>
+             <Text style={styles.usernameLabel}>Traveler!</Text>
+          </View>
+
+          <TouchableOpacity onPress={pickImage} style={styles.profileContainer}>
+             {profileImage ? (
+               <Image source={{ uri: profileImage }} style={styles.profileImage} />
+             ) : (
+               <View style={styles.placeholderImage}>
+                 <Ionicons name="camera" size={24} color="#187c3a" />
+               </View>
+             )}
+             {/* Plus icon overlay */}
+             <View style={styles.addIcon}>
+                <Ionicons name="add-circle" size={20} color="white" />
+             </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Existing Banner Image */}
         <ImageBackground
           source={require('../assets/pak.jpg')}
           style={[styles.bgimg, { height: width > 800 ? width * 0.5 : width * 0.9 }]}
@@ -152,12 +222,35 @@ function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { backgroundColor: '#187c3a', paddingBottom: 40 },
-  bgimg: { marginHorizontal: 10, marginTop: 30, borderRadius: 20, overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
+  
+  // --- NEW STYLES FOR HEADER ---
+  topHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 25,
+    marginTop: 50, // StatusBar se neeche
+    marginBottom: 10
+  },
+  welcomeLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 14 },
+  usernameLabel: { color: 'white', fontSize: 24, fontWeight: 'bold' },
+  profileContainer: { position: 'relative' },
+  profileImage: { width: 55, height: 55, borderRadius: 30, borderWidth: 2, borderColor: 'white' },
+  placeholderImage: { 
+    width: 55, height: 55, borderRadius: 30, backgroundColor: 'white', 
+    justifyContent: 'center', alignItems: 'center' 
+  },
+  addIcon: { 
+    position: 'absolute', bottom: -2, right: -2, 
+    backgroundColor: '#187c3a', borderRadius: 10, borderWidth:1, borderColor:'white' 
+  },
+
+  bgimg: { marginHorizontal: 10, marginTop: 10, borderRadius: 20, overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
   overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)' },
   maintext: { fontSize: 32, color: 'white', fontWeight: 'bold', textAlign: 'center', marginHorizontal: 20 },
   button: { backgroundColor: '#187c3a', paddingHorizontal: 30, paddingVertical: 12, borderRadius: 25, marginTop: 20 },
   buttonText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
-  container2: { backgroundColor: 'white', flex: 1 },
+  container2: { backgroundColor: 'white', flex: 1, borderTopLeftRadius: 30, borderTopRightRadius: 30, marginTop: -20 },
   searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderRadius: 25, paddingHorizontal: 15, marginHorizontal: 20, marginTop: 30, marginBottom: 20, elevation: 5 },
   citiesheading: { fontSize: 28, fontWeight: 'bold', color: '#333', marginLeft: 30, marginBottom: 20 },
   cards: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
