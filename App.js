@@ -1,7 +1,8 @@
 import * as React from "react";
 import { createStaticNavigation } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Ionicons } from '@expo/vector-icons'; // For tab icons
 
 // Screens
 import LoginScreen from "./Screens/Login";
@@ -12,21 +13,51 @@ import WeatherScreen from "./Screens/Weather";
 import CityDetail from "./Screens/CityDetail";
 import MapScreen from './Screens/MapScreen';
 
-// ------------------- MAIN TABS ---------------------
-const MainTabs = createMaterialTopTabNavigator({
+// ------------------- MAIN TABS (NOW BOTTOM TABS) ---------------------
+const MainTabs = createBottomTabNavigator({
   screens: {
-    Home: HomeScreen,
-    Gallery: GalleryScreen,
+    Home: {
+      screen: HomeScreen,
+      options: {
+        title: 'Home',
+        tabBarIcon: ({ color, size }) => (
+          <Ionicons name="home-outline" color={color} size={size} />
+        ),
+      },
+    },
+    Gallery: {
+      screen: GalleryScreen,
+      options: {
+        title: 'Gallery',
+        tabBarIcon: ({ color, size }) => (
+          <Ionicons name="images-outline" color={color} size={size} />
+        ),
+      },
+    },
     Map: {
       screen: MapScreen,
-      options: { title: 'Explore Map' },
+      options: {
+        title: 'Explore',
+        tabBarIcon: ({ color, size }) => (
+          <Ionicons name="map-outline" color={color} size={size} />
+        ),
+      },
     },
   },
   screenOptions: {
     tabBarActiveTintColor: "#187c3a",
-    tabBarIndicatorStyle: { backgroundColor: "#187c3a", height: 3 },
-    tabBarLabelStyle: { fontSize: 14, fontWeight: "bold" },
-    tabBarStyle: { backgroundColor: "white" },
+    tabBarInactiveTintColor: "gray",
+    tabBarStyle: {
+      backgroundColor: "white",
+      paddingBottom: 5,
+      paddingTop: 5,
+      height: 60,
+    },
+    tabBarLabelStyle: {
+      fontSize: 12,
+      fontWeight: "600",
+    },
+    headerShown: false, // Hide header in tab navigator
   },
 });
 
@@ -35,15 +66,24 @@ const RootStack = createNativeStackNavigator({
   screens: {
     LoginScreen: {
       screen: LoginScreen,
-      options: { title: "Explore Pakistan" },
+      options: { 
+        title: "Explore Pakistan",
+        headerShown: false,
+      },
     },
     Signup: {
       screen: Signup,
-      options: { title: "Explore Pakistan" },
+      options: { 
+        title: "Explore Pakistan",
+        headerShown: false,
+      },
     },
     MainTabs: {
       screen: MainTabs,
-      options: { title: "Explore Pakistan" },
+      options: { 
+        title: "Explore Pakistan",
+        headerShown: true, // Show header for main tabs screen
+      },
     },
     Weather: {
       screen: WeatherScreen,
@@ -77,6 +117,5 @@ const Navigation = createStaticNavigation(RootStack);
 
 // ------------------- APP ROOT ----------------------
 export default function App() {
-  // Ab yahan koi extra code nahi hai, sirf Navigation return ho rahi hai
   return <Navigation />;
 }
