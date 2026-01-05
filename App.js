@@ -1,8 +1,13 @@
+// File: App.js
 import * as React from "react";
 import { createStaticNavigation } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from '@expo/vector-icons'; // For tab icons
+import { Ionicons } from '@expo/vector-icons';
+import FavoritesScreen from "./Screens/FavoritesScreen"; 
+
+// Import Context
+import { AuthProvider } from './context/AuthContext';
 
 // Screens
 import LoginScreen from "./Screens/Login";
@@ -13,7 +18,7 @@ import WeatherScreen from "./Screens/Weather";
 import CityDetail from "./Screens/CityDetail";
 import MapScreen from './Screens/MapScreen';
 
-// ------------------- MAIN TABS (NOW BOTTOM TABS) ---------------------
+// ------------------- MAIN TABS ---------------------
 const MainTabs = createBottomTabNavigator({
   screens: {
     Home: {
@@ -31,6 +36,15 @@ const MainTabs = createBottomTabNavigator({
         title: 'Gallery',
         tabBarIcon: ({ color, size }) => (
           <Ionicons name="images-outline" color={color} size={size} />
+        ),
+      },
+    },
+    Favorites: {  // NEW TAB ADDED
+      screen: FavoritesScreen,
+      options: {
+        title: 'Favorites',
+        tabBarIcon: ({ color, size }) => (
+          <Ionicons name="heart-outline" color={color} size={size} />
         ),
       },
     },
@@ -57,7 +71,7 @@ const MainTabs = createBottomTabNavigator({
       fontSize: 12,
       fontWeight: "600",
     },
-    headerShown: false, // Hide header in tab navigator
+    headerShown: false,
   },
 });
 
@@ -82,7 +96,7 @@ const RootStack = createNativeStackNavigator({
       screen: MainTabs,
       options: { 
         title: "Explore Pakistan",
-        headerShown: true, // Show header for main tabs screen
+        headerShown: true,
       },
     },
     Weather: {
@@ -117,5 +131,9 @@ const Navigation = createStaticNavigation(RootStack);
 
 // ------------------- APP ROOT ----------------------
 export default function App() {
-  return <Navigation />;
+  return (
+    <AuthProvider>
+      <Navigation />
+    </AuthProvider>
+  );
 }

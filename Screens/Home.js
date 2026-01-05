@@ -18,10 +18,15 @@ import { Accelerometer } from 'expo-sensors';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../context/AuthContext';
 
 function HomeScreen() {
   const { width } = useWindowDimensions();
   const navigation = useNavigation();
+  
+  // Sirf itna context use karein
+  const { favorites, isFavorite, addToFavorites, removeFromFavorites } = useAuth();
+  
   const isLargeScreen = width > 800;
   const cardWidth = isLargeScreen ? '30%' : '45%';
 
@@ -36,13 +41,13 @@ function HomeScreen() {
     { name: "Naran", display: "Naran Kaghan" },
     { name: "Gilgit", display: "Gilgit Baltistan" },
     { name: "Rawalpindi", display: "Rawalpindi" },
-    { name: "Multan", display: "Multan" }, // Capital 'M'
+    { name: "Multan", display: "Multan" },
   ];
 
   const [cities, setCities] = useState(initialCities);
   const [location, setLocation] = useState(null);
   const [profileImage, setProfileImage] = useState(null);
-  const [searchQuery, setSearchQuery] = useState(''); // Added search state
+  const [searchQuery, setSearchQuery] = useState('');
 
   // --- CITY IMAGES ---
   const cityImages = {
@@ -140,6 +145,25 @@ function HomeScreen() {
     navigation.navigate('Map', { userLocation: location });
   };
 
+  // --- FAVORITE TOGGLE FUNCTION ---
+  const handleFavoriteToggle = (city) => {
+    const cityData = { 
+      name: city.name, 
+      display: city.display,
+      image: cityImages[city.name] || "https://via.placeholder.com/150"
+    };
+    
+    if (isFavorite(city.name)) {
+      removeFromFavorites(city.name);
+      // Optional: Small toast message
+      // Alert.alert("❤️ Removed", `${city.display} removed from favorites`);
+    } else {
+      addToFavorites(cityData);
+      // Optional: Small toast message  
+      // Alert.alert("✅ Added", `${city.display} added to favorites!`);
+    }
+  };
+
   // --- RENDER ---
   return (
     <ScrollView>
@@ -167,6 +191,17 @@ function HomeScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Favorites Badge - Simple and Clean */}
+        <TouchableOpacity 
+          style={styles.favoritesBadge}
+          onPress={() => navigation.navigate('Favorites')}
+        >
+          <Ionicons name="heart" size={18} color="white" />
+          <Text style={styles.favoritesBadgeText}>
+            {favorites.length} Favorite{favorites.length !== 1 ? 's' : ''}
+          </Text>
+        </TouchableOpacity>
+
         {/* Banner Image */}
         <ImageBackground
           source={require('../assets/pak.jpg')}
@@ -189,7 +224,7 @@ function HomeScreen() {
             placeholderTextColor="#187c3a"
             style={{ flex: 1, fontSize: 16, paddingVertical: 8 }}
             value={searchQuery}
-            onChangeText={setSearchQuery} // Added onChangeText
+            onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
@@ -200,7 +235,7 @@ function HomeScreen() {
 
         <Text style={styles.citiesheading}>Featured Cities</Text>
 
-        {/* Cities Cards */}
+        {/* Cities Cards with Favorite Button */}
         <View style={styles.cards}>
           {filteredCities.length > 0 ? (
             filteredCities.map((city, index) => (
@@ -211,6 +246,19 @@ function HomeScreen() {
                   imageStyle={{ borderRadius: 15 }}
                 >
                   <View style={styles.overlay} />
+                  
+                  {/* Favorite Heart Icon */}
+                  <TouchableOpacity 
+                    style={styles.favoriteHeart}
+                    onPress={() => handleFavoriteToggle(city)}
+                  >
+                    <Ionicons 
+                      name={isFavorite(city.name) ? "heart" : "heart-outline"} 
+                      size={24} 
+                      color={isFavorite(city.name) ? "#e74c3c" : "white"} 
+                    />
+                  </TouchableOpacity>
+                  
                   <View style={styles.cardContent}>
                     <Text style={styles.cardtext}>{city.display}</Text>
                     <TouchableOpacity
@@ -285,6 +333,43 @@ const styles = StyleSheet.create({
     borderWidth: 1, 
     borderColor: 'white' 
   },
+  
+  // Favorites Badge - Simple
+  favoritesBadge: {
+    position: 'absolute',
+    top: 70,
+    right: 20,
+    backgroundColor: 'rgba(231, 76, 60, 0.9)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+    zIndex: 10,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+  favoritesBadgeText: {
+    color: 'white',
+    fontWeight: 'bold',
+    marginLeft: 5,
+    fontSize: 14,
+  },
+  
+  // Favorite Heart on Cards
+  favoriteHeart: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: 8,
+  },
+  
+  // Existing Styles
   bgimg: { 
     marginHorizontal: 10, 
     marginTop: 10, 
